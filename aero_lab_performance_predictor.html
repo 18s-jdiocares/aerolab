@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0c0c0e] text-[#f4f4f5]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERO_LAB // VO2max & 5K Performance Engine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Space Grotesk & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#0c0c0e',
+                            card: '#121215',
+                            border: '#27272a',
+                            vermilion: '#ff3b30',
+                            crimson: '#e02820',
+                            zincMuted: '#a1a1aa',
+                            zincDark: '#18181b'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                        sans: ['"Space Grotesk"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for raw industrial aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff3b30;
+        }
+        
+        .hard-shadow {
+            box-shadow: 4px 4px 0px 0px rgba(255, 59, 48, 0.4);
+        }
+        .hard-shadow-zinc {
+            box-shadow: 4px 4px 0px 0px #27272a;
+        }
+        .btn-press:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(255, 59, 48, 0.4);
+        }
+        
+        /* Input Range Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #27272a;
+            border-radius: 0px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 18px;
+            width: 12px;
+            border-radius: 0px;
+            background: #ff3b30;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            border: 1px solid #ffffff;
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col font-sans bg-[#0c0c0e] text-[#f4f4f5] antialiased selection:bg-[#ff3b30] selection:text-black">
+
+    <!-- TOP TELEMETRY BAR -->
+    <header class="border-b border-[#27272a] bg-[#0c0c0e] sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 bg-[#ff3b30] border border-white"></div>
+                <span class="font-mono text-lg font-bold tracking-widest uppercase">AERO_LAB<span class="text-[#ff3b30]">//</span>v2.4</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6 font-mono text-xs text-zinc-400">
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    PHYSIO_ENGINE: ONLINE
+                </span>
+                <span class="border-l border-zinc-800 pl-6">SHORTCUTS: <kbd class="px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px]">M</kbd> MODE &nbsp;<kbd class="px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px]">C</kbd> CALIBRATE &nbsp;<kbd class="px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px]">S</kbd> SAVE</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="resetAppBtn" class="px-3 py-1.5 text-xs font-mono border border-zinc-800 hover:border-zinc-500 bg-zinc-900 transition-colors uppercase">
+                    RESET DATA
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN EDITORIAL CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- LEFT COLUMN: BASELINE CALIBRATION & PROFILES (4 COLS) -->
+        <section class="lg:col-span-4 space-y-6">
+            
+            <!-- CALIBRATION CARD -->
+            <div class="bg-[#121215] border border-[#27272a] p-5 hard-shadow-zinc relative">
+                <div class="absolute -top-3 left-4 bg-[#0c0c0e] px-2 font-mono text-xs text-[#ff3b30] border border-[#27272a] font-semibold">
+                    01 // BASELINE CALIBRATION
+                </div>
+
+                <p class="text-xs text-zinc-400 mt-2 mb-4 leading-relaxed">
+                    Set your known baseline parameters. The engine uses this anchor to compute your individual running economy modifier.
+                </p>
+
+                <!-- PRESET ATHLETE PROFILES -->
+                <div class="mb-5">
+                    <label class="block text-xs font-mono uppercase text-zinc-400 mb-2">Preset Athlete Benchmarks</label>
+                    <div class="grid grid-cols-2 gap-2 font-mono text-xs">
+                        <button onclick="loadPreset(38, '26:15')" class="p-2 border border-zinc-800 hover:border-[#ff3b30] bg-zinc-900/50 text-left transition-all hover:bg-zinc-800/80">
+                            <div class="text-zinc-200 font-bold">RECREATIONAL</div>
+                            <div class="text-zinc-500 text-[10px]">38.0 VO2 | 26:15 5K</div>
+                        </button>
+                        <button onclick="loadPreset(46, '22:10')" class="p-2 border border-zinc-800 hover:border-[#ff3b30] bg-zinc-900/50 text-left transition-all hover:bg-zinc-800/80">
+                            <div class="text-zinc-200 font-bold">MASTERS</div>
+                            <div class="text-zinc-500 text-[10px]">46.0 VO2 | 22:10 5K</div>
+                        </button>
+                        <button onclick="loadPreset(52, '19:30')" class="p-2 border border-zinc-800 hover:border-[#ff3b30] bg-zinc-900/50 text-left transition-all hover:bg-zinc-800/80">
+                            <div class="text-zinc-200 font-bold">SUB-20 CLUB</div>
+                            <div class="text-zinc-500 text-[10px]">52.0 VO2 | 19:30 5K</div>
+                        </button>
+                        <button onclick="loadPreset(71, '14:45')" class="p-2 border border-zinc-800 hover:border-[#ff3b30] bg-zinc-900/50 text-left transition-all hover:bg-zinc-800/80">
+                            <div class="text-zinc-200 font-bold">ELITE HARRIER</div>
+                            <div class="text-zinc-500 text-[10px]">71.0 VO2 | 14:45 5K</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BASELINE INPUTS -->
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="baseVo2" class="text-xs font-mono uppercase text-zinc-300">Baseline VO2max</label>
+                            <span class="text-xs font-mono text-zinc-500">mL/kg/min</span>
+                        </div>
+                        <input type="number" id="baseVo2" value="52.0" step="0.1" min="20" max="95" 
+                               class="w-full bg-zinc-900 border border-zinc-700 px-3 py-2 text-lg font-mono text-white focus:outline-none focus:border-[#ff3b30]">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-mono uppercase text-zinc-300">Baseline 5K Time</label>
+                            <span class="text-xs font-mono text-zinc-500">MM : SS</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="relative">
+                                <input type="number" id="baseMin" value="19" min="10" max="60" placeholder="MM"
+                                       class="w-full bg-zinc-900 border border-zinc-700 px-3 py-2 text-lg font-mono text-white focus:outline-none focus:border-[#ff3b30]">
+                                <span class="absolute right-2 top-2.5 font-mono text-xs text-zinc-500">m</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="baseSec" value="30" min="0" max="59" placeholder="SS"
+                                       class="w-full bg-zinc-900 border border-zinc-700 px-3 py-2 text-lg font-mono text-white focus:outline-none focus:border-[#ff3b30]">
+                                <span class="absolute right-2 top-2.5 font-mono text-xs text-zinc-500">s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button id="calibrateBtn" class="w-full py-2.5 bg-zinc-100 text-black hover:bg-[#ff3b30] hover:text-white font-mono font-bold text-xs uppercase transition-colors btn-press border border-white">
+                            Lock & Calibrate Anchor
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DERIVED RUNNING ECONOMY RATIO DISPLAY -->
+                <div class="mt-5 pt-4 border-t border-zinc-800 flex justify-between items-center font-mono text-xs">
+                    <span class="text-zinc-500">ECONOMY MODIFIER:</span>
+                    <span id="economyRatioDisplay" class="text-[#ff3b30] font-bold">1.000x (NEUTRAL)</span>
+                </div>
+            </div>
+
+            <!-- SAVED SCENARIOS LOG -->
+            <div class="bg-[#121215] border border-[#27272a] p-5 hard-shadow-zinc relative">
+                <div class="absolute -top-3 left-4 bg-[#0c0c0e] px-2 font-mono text-xs text-zinc-400 border border-[#27272a]">
+                    SAVED SCENARIO LOG
+                </div>
+
+                <div class="flex justify-between items-center mb-3 mt-1">
+                    <span class="text-xs font-mono text-zinc-400">STORED IN LOCALSTORAGE</span>
+                    <button id="exportJsonBtn" class="text-[10px] font-mono text-zinc-400 hover:text-[#ff3b30] underline uppercase">
+                        Export JSON
+                    </button>
+                </div>
+
+                <div id="savedList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <!-- Populated dynamically -->
+                    <div class="text-xs font-mono text-zinc-600 italic py-2 text-center border border-dashed border-zinc-800">
+                        No saved scenarios. Click "Save Scenario" on the right panel.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: PREDICTION ENGINE & ANALYTICS (8 COLS) -->
+        <section class="lg:col-span-8 space-y-6">
+
+            <!-- PREDICTION MODE TOGGLE & TARGET INPUT CARD -->
+            <div class="bg-[#121215] border border-[#27272a] p-6 hard-shadow relative">
+                <div class="absolute -top-3 left-4 bg-[#0c0c0e] px-2 font-mono text-xs text-[#ff3b30] border border-[#27272a] font-semibold">
+                    02 // DUAL-MODE PREDICTION MATRIX
+                </div>
+
+                <!-- MODE SELECTOR TABS -->
+                <div class="grid grid-cols-2 gap-0 border border-zinc-800 p-1 bg-zinc-900 mb-6 mt-2">
+                    <button id="modeTabA" onclick="setMode('A')" class="py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all bg-[#ff3b30] text-white">
+                        MODE A: TARGET VO2max → PREDICT 5K
+                    </button>
+                    <button id="modeTabB" onclick="setMode('B')" class="py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all text-zinc-400 hover:text-white">
+                        MODE B: TARGET 5K TIME → REQ. VO2max
+                    </button>
+                </div>
+
+                <!-- DYNAMIC CONTROLS PANEL -->
+                <div class="space-y-6">
+                    
+                    <!-- MODE A CONTROLS (Target VO2) -->
+                    <div id="controlsModeA" class="space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <label for="targetVo2Input" class="text-xs font-mono uppercase text-zinc-300">Target Aerobic Capacity (VO2max)</label>
+                            <span class="font-mono text-2xl font-bold text-[#ff3b30]"><span id="targetVo2Val">58.0</span> <span class="text-xs text-zinc-500 font-normal">mL/kg/min</span></span>
+                        </div>
+                        <input type="range" id="targetVo2Slider" min="25" max="85" step="0.5" value="58.0" class="w-full">
+                        <div class="flex justify-between font-mono text-[10px] text-zinc-500">
+                            <span>25.0 LOW</span>
+                            <span>55.0 ADVANCED</span>
+                            <span>85.0 OLYMPIC</span>
+                        </div>
+                    </div>
+
+                    <!-- MODE B CONTROLS (Target 5K Time) -->
+                    <div id="controlsModeB" class="space-y-4 hidden">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <label class="text-xs font-mono uppercase text-zinc-300">Target 5K Goal Finish Time</label>
+                            <div class="flex items-center gap-2 font-mono text-2xl font-bold text-[#ff3b30]">
+                                <input type="number" id="targetMinInput" value="18" min="10" max="60" class="w-16 bg-zinc-900 border border-zinc-700 px-2 py-1 text-center text-white focus:outline-none focus:border-[#ff3b30]">
+                                <span>:</span>
+                                <input type="number" id="targetSecInput" value="15" min="0" max="59" class="w-16 bg-zinc-900 border border-zinc-700 px-2 py-1 text-center text-white focus:outline-none focus:border-[#ff3b30]">
+                            </div>
+                        </div>
+                        <input type="range" id="targetTimeSlider" min="600" max="2400" step="5" value="1095" class="w-full">
+                        <div class="flex justify-between font-mono text-[10px] text-zinc-500">
+                            <span>10:00 (WORLD CLASS)</span>
+                            <span>20:00 (SUB-20)</span>
+                            <span>40:00 (RECREATIONAL)</span>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BAR -->
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <button id="saveScenarioBtn" class="flex-1 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-mono text-xs uppercase border border-zinc-700 transition-colors btn-press">
+                            + Save Scenario
+                        </button>
+                        <button id="copySummaryBtn" class="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-mono text-xs uppercase border border-zinc-700 transition-colors btn-press">
+                            Copy Summary
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DISPLAY MATRIX / HERO OUTPUT -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- OUTPUT CARD 1: PREDICTED 5K TIME -->
+                <div class="bg-[#121215] border border-zinc-800 p-4 relative">
+                    <div class="text-[10px] font-mono text-zinc-500 uppercase">PREDICTED 5K TIME</div>
+                    <div id="output5kTime" class="text-3xl font-mono font-bold text-white my-1">18:12</div>
+                    <div class="text-[11px] font-mono text-zinc-400 flex justify-between border-t border-zinc-800/80 pt-2 mt-2">
+                        <span>Pace:</span>
+                        <span id="output5kPace" class="text-zinc-200 font-semibold">3:38 /km (5:51 /mi)</span>
+                    </div>
+                </div>
+
+                <!-- OUTPUT CARD 2: VDOT / vVO2MAX -->
+                <div class="bg-[#121215] border border-zinc-800 p-4 relative">
+                    <div class="text-[10px] font-mono text-zinc-500 uppercase">VDOT / vVO2MAX</div>
+                    <div id="outputVdot" class="text-3xl font-mono font-bold text-[#ff3b30] my-1">56.4</div>
+                    <div class="text-[11px] font-mono text-zinc-400 flex justify-between border-t border-zinc-800/80 pt-2 mt-2">
+                        <span>Velocity @ VO2:</span>
+                        <span id="outputVVO2" class="text-zinc-200 font-semibold">17.8 km/h</span>
+                    </div>
+                </div>
+
+                <!-- OUTPUT CARD 3: DELTA vs BASELINE -->
+                <div class="bg-[#121215] border border-zinc-800 p-4 relative">
+                    <div class="text-[10px] font-mono text-zinc-500 uppercase">PHYSIOLOGICAL DELTA</div>
+                    <div id="outputDelta" class="text-3xl font-mono font-bold text-emerald-400 my-1">+11.5%</div>
+                    <div class="text-[11px] font-mono text-zinc-400 flex justify-between border-t border-zinc-800/80 pt-2 mt-2">
+                        <span>Strain Index:</span>
+                        <span id="outputStrain" class="text-zinc-200 font-semibold">HIGH AEROBIC</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VISUAL VO2MAX CANVAS COMPARISON SPECTRUM -->
+            <div class="bg-[#121215] border border-[#27272a] p-5 hard-shadow-zinc">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="font-mono text-xs uppercase text-zinc-300 font-bold">AEROBIC CAPACITY SPECTRUM (VO2max mL/kg/min)</span>
+                    <span class="font-mono text-[10px] text-zinc-500">RANGE: 30 - 85</span>
+                </div>
+                
+                <div class="relative w-full h-20 bg-zinc-950 border border-zinc-800">
+                    <canvas id="spectrumCanvas" class="w-full h-full block"></canvas>
+                </div>
+                <div class="flex justify-between font-mono text-[10px] text-zinc-500 mt-2">
+                    <span>30: SEDENTARY</span>
+                    <span>45: ACTIVE</span>
+                    <span>60: REGIONAL ELITE</span>
+                    <span>75: NATIONAL</span>
+                    <span>85: WORLD CLASS</span>
+                </div>
+            </div>
+
+            <!-- TABBED DETAILED ANALYSIS (PACING SPLITS & TRAINING ZONES) -->
+            <div class="bg-[#121215] border border-[#27272a] p-5 hard-shadow-zinc">
+                
+                <!-- TAB HEADERS -->
+                <div class="flex border-b border-zinc-800 mb-4 gap-4 font-mono text-xs">
+                    <button id="btnTabSplits" onclick="setAnalysisTab('splits')" class="pb-2 border-b-2 border-[#ff3b30] text-white font-bold uppercase">
+                        5K Split Matrix
+                    </button>
+                    <button id="btnTabZones" onclick="setAnalysisTab('zones')" class="pb-2 border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 uppercase">
+                        Training Pace Zones (Daniels)
+                    </button>
+                </div>
+
+                <!-- TAB CONTENT 1: SPLIT MATRIX -->
+                <div id="tabSplits" class="space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full font-mono text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-zinc-800 text-zinc-500 bg-zinc-900/40">
+                                    <th class="py-2 px-3">SPLIT</th>
+                                    <th class="py-2 px-3">DISTANCE</th>
+                                    <th class="py-2 px-3">SPLIT TIME</th>
+                                    <th class="py-2 px-3">CUMULATIVE</th>
+                                    <th class="py-2 px-3">TARGET PACE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="splitsTableBody" class="divide-y divide-zinc-800/50">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 2: TRAINING ZONES -->
+                <div id="tabZones" class="space-y-4 hidden">
+                    <p class="text-xs text-zinc-400 font-mono">
+                        Calculated directly from target VDOT (<span id="vdotZoneVal">56.4</span>). Use these recommended training paces to achieve the target VO2max.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+                        <div class="p-3 border border-zinc-800 bg-zinc-900/30">
+                            <div class="text-[#ff3b30] font-bold">EASY / RECOVERY (E-PACE)</div>
+                            <div class="text-xl text-white font-bold my-1" id="paceEasy">4:45 - 5:15 /km</div>
+                            <div class="text-[10px] text-zinc-500">65-79% HRmax | Base aerobic building & recovery.</div>
+                        </div>
+
+                        <div class="p-3 border border-zinc-800 bg-zinc-900/30">
+                            <div class="text-emerald-400 font-bold">MARATHON (M-PACE)</div>
+                            <div class="text-xl text-white font-bold my-1" id="paceMarathon">4:05 /km</div>
+                            <div class="text-[10px] text-zinc-500">80-89% HRmax | Aerobic endurance & race specificity.</div>
+                        </div>
+
+                        <div class="p-3 border border-zinc-800 bg-zinc-900/30">
+                            <div class="text-amber-400 font-bold">THRESHOLD / TEMPO (T-PACE)</div>
+                            <div class="text-xl text-white font-bold my-1" id="paceThreshold">3:50 /km</div>
+                            <div class="text-[10px] text-zinc-500">88-92% HRmax | Lactate clearance elevation.</div>
+                        </div>
+
+                        <div class="p-3 border border-zinc-800 bg-zinc-900/30">
+                            <div class="text-purple-400 font-bold">INTERVAL (I-PACE)</div>
+                            <div class="text-xl text-white font-bold my-1" id="paceInterval">3:28 /km</div>
+                            <div class="text-[10px] text-zinc-500">98-100% HRmax | VO2max ceiling expansion (3-5 min work intervals).</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="border-t border-zinc-800 py-6 bg-[#0c0c0e] text-center font-mono text-xs text-zinc-600">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
+            <div>AERO_LAB // PHYSIOLOGICAL RUNNING ENGINE</div>
+            <div>FORMULAS BASED ON DANIELS' VDOT PHYSIOLOGY MODEL</div>
+            <div>STATUS: HIGH_PRECISION_MODE</div>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           01. STATE MANAGEMENT & MATH ENGINE
+           ========================================================================== */
+        
+        let state = {
+            mode: 'A', // 'A' = VO2 -> 5K, 'B' = 5K -> VO2
+            baselineVo2: 52.0,
+            baselineTimeSec: 1170, // 19:30 in seconds
+            economyRatio: 1.0, // Baseline ratio comparing pure VDOT vs Baseline input
+            targetVo2: 58.0,
+            targetTimeSec: 1095, // 18:15
+            scenarios: []
+        };
+
+        /**
+         * Daniels' Running Formula equations:
+         * D = distance in meters (5000)
+         * t = time in minutes
+         * v = velocity in m/min
+         */
+        
+        // Compute VO2 cost for a given velocity in m/min
+        function getVo2Cost(v) {
+            return -4.60 + (0.182258 * v) + (0.000104 * Math.pow(v, 2));
+        }
+
+        // Compute percent of max VO2 for a given duration t in minutes
+        function getPercentMax(t) {
+            return 0.8 + (0.1894393 * Math.exp(-0.012778 * t)) + (0.2989558 * Math.exp(-0.1932605 * t));
+        }
+
+        // Calculate VDOT given a 5K finish time in seconds
+        function timeToVdot(timeSec) {
+            const t = timeSec / 60; // minutes
+            const v = 5000 / t; // m/min
+            const vo2Cost = getVo2Cost(v);
+            const pct = getPercentMax(t);
+            return vo2Cost / pct;
+        }
+
+        // Calculate 5K time in seconds given a target VDOT score using binary search convergence
+        function vdotToTime(targetVdot) {
+            let minSec = 500;   // 8:20 5k (superhuman)
+            let maxSec = 3600;  // 60:00 5k
+            let bestSec = 1200;
+
+            for (let i = 0; i < 35; i++) {
+                const midSec = (minSec + maxSec) / 2;
+                const calcVdot = timeToVdot(midSec);
+
+                if (calcVdot < targetVdot) {
+                    maxSec = midSec; // Needs to be faster
+                } else {
+                    minSec = midSec; // Needs to be slower
+                }
+                bestSec = midSec;
+            }
+            return bestSec;
+        }
+
+        // Convert Seconds to MM:SS string
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.round(sec % 60);
+            const padS = s < 10 ? '0' + s : s;
+            return `${m}:${padS}`;
+        }
+
+        // Parse MM and SS into total seconds
+        function parseTimeToSec(m, s) {
+            return (parseInt(m) || 0) * 60 + (parseInt(s) || 0);
+        }
+
+
+        /* ==========================================================================
+           02. CALIBRATION & RECALCULATION LOGIC
+           ========================================================================== */
+
+        function updateEconomyRatio() {
+            // Theoretical VDOT derived from baseline time
+            const pureVdot = timeToVdot(state.baselineTimeSec);
+            // Economy modifier accounts for individual efficiency differences
+            state.economyRatio = state.baselineVo2 / pureVdot;
+            
+            const ratioDisplay = document.getElementById('economyRatioDisplay');
+            if (ratioDisplay) {
+                const perc = (state.economyRatio * 100).toFixed(1);
+                ratioDisplay.innerText = `${state.economyRatio.toFixed(3)}x (${perc}% baseline)`;
+            }
+        }
+
+        function calculateResults() {
+            let output5kTimeSec = 0;
+            let outputVo2 = 0;
+            let vdotVal = 0;
+
+            if (state.mode === 'A') {
+                // Given target VO2 -> compute effective VDOT using economy modifier
+                const effectiveVdot = state.targetVo2 / state.economyRatio;
+                output5kTimeSec = vdotToTime(effectiveVdot);
+                outputVo2 = state.targetVo2;
+                vdotVal = effectiveVdot;
+                state.targetTimeSec = output5kTimeSec;
+            } else {
+                // Mode B: Given target 5K time -> compute required VDOT & VO2
+                vdotVal = timeToVdot(state.targetTimeSec);
+                outputVo2 = vdotVal * state.economyRatio;
+                output5kTimeSec = state.targetTimeSec;
+                state.targetVo2 = outputVo2;
+            }
+
+            // Pace calculations
+            const paceKmSec = output5kTimeSec / 5;
+            const paceMiSec = output5kTimeSec / 3.10686;
+
+            // Delta vs baseline
+            const vo2DeltaPct = ((outputVo2 - state.baselineVo2) / state.baselineVo2) * 100;
+            const timeDeltaSec = state.baselineTimeSec - output5kTimeSec;
+
+            // Velocity at VO2max approximation (km/h)
+            const vVO2KmH = (5 / (output5kTimeSec / 3600)) * 1.05;
+
+            // DOM RENDERING
+            document.getElementById('output5kTime').innerText = formatTime(output5kTimeSec);
+            document.getElementById('output5kPace').innerText = `${formatTime(paceKmSec)} /km (${formatTime(paceMiSec)} /mi)`;
+            document.getElementById('outputVdot').innerText = vdotVal.toFixed(1);
+            document.getElementById('outputVVO2').innerText = `${vVO2KmH.toFixed(1)} km/h`;
+
+            const deltaEl = document.getElementById('outputDelta');
+            const deltaSign = vo2DeltaPct >= 0 ? '+' : '';
+            deltaEl.innerText = `${deltaSign}${vo2DeltaPct.toFixed(1)}%`;
+            deltaEl.className = `text-3xl font-mono font-bold my-1 ${vo2DeltaPct >= 0 ? 'text-emerald-400' : 'text-amber-500'}`;
+
+            // Strain Index text
+            const strainEl = document.getElementById('outputStrain');
+            if (vo2DeltaPct > 15) strainEl.innerText = 'EXTREME AEROBIC';
+            else if (vo2DeltaPct > 5) strainEl.innerText = 'HIGH THRESHOLD';
+            else if (vo2DeltaPct >= -5) strainEl.innerText = 'SUSTAINABLE';
+            else strainEl.innerText = 'RECOVERY LEVEL';
+
+            // Sync Slider text displays
+            document.getElementById('targetVo2Val').innerText = state.targetVo2.toFixed(1);
+            document.getElementById('targetVo2Slider').value = state.targetVo2;
+            
+            document.getElementById('targetMinInput').value = Math.floor(output5kTimeSec / 60);
+            document.getElementById('targetSecInput').value = Math.round(output5kTimeSec % 60);
+            document.getElementById('targetTimeSlider').value = output5kTimeSec;
+
+            // Update Zones & Splits
+            renderSplitsTable(output5kTimeSec);
+            renderTrainingZones(vdotVal);
+            renderSpectrumCanvas();
+        }
+
+        /* ==========================================================================
+           03. TABLE & ZONE RENDERING
+           ========================================================================== */
+
+        function renderSplitsTable(totalSec) {
+            const tbody = document.getElementById('splitsTableBody');
+            tbody.innerHTML = '';
+
+            const kmPaceSec = totalSec / 5;
+            let cumulative = 0;
+
+            for (let i = 1; i <= 5; i++) {
+                // Slight realistic negative split simulation
+                const factor = 1.01 - (i * 0.005); 
+                const splitSec = kmPaceSec * factor;
+                cumulative += splitSec;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-800/30 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-bold text-white">KM ${i}</td>
+                    <td class="py-2.5 px-3 text-zinc-400">1.00 km</td>
+                    <td class="py-2.5 px-3 text-emerald-400">${formatTime(splitSec)}</td>
+                    <td class="py-2.5 px-3 text-zinc-300">${formatTime(cumulative)}</td>
+                    <td class="py-2.5 px-3 text-zinc-500">${formatTime(splitSec)} /km</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderTrainingZones(vdot) {
+            document.getElementById('vdotZoneVal').innerText = vdot.toFixed(1);
+
+            // Jack Daniels approximate pace factors relative to 5K pace
+            const base5kPace = vdotToTime(vdot) / 5;
+
+            const easyMin = base5kPace * 1.28;
+            const easyMax = base5kPace * 1.42;
+            const marathonPace = base5kPace * 1.12;
+            const thresholdPace = base5kPace * 1.05;
+            const intervalPace = base5kPace * 0.95;
+
+            document.getElementById('paceEasy').innerText = `${formatTime(easyMin)} - ${formatTime(easyMax)} /km`;
+            document.getElementById('paceMarathon').innerText = `${formatTime(marathonPace)} /km`;
+            document.getElementById('paceThreshold').innerText = `${formatTime(thresholdPace)} /km`;
+            document.getElementById('paceInterval').innerText = `${formatTime(intervalPace)} /km`;
+        }
+
+
+        /* ==========================================================================
+           04. CANVAS SPECTRUM VISUALIZATION
+           ========================================================================== */
+
+        function renderSpectrumCanvas() {
+            const canvas = document.getElementById('spectrumCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Handle DPI sizing
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const w = rect.width;
+            const h = rect.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Spectrum Gradient Background
+            const grad = ctx.createLinearGradient(0, 0, w, 0);
+            grad.addColorStop(0, '#18181b');
+            grad.addColorStop(0.5, '#27272a');
+            grad.addColorStop(1, '#ff3b30');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, h / 2 - 4, w, 8);
+
+            // Mapping function: VO2 (30 -> 85) to X Coordinate
+            const getX = (vo2) => {
+                const clamped = Math.max(30, Math.min(85, vo2));
+                return ((clamped - 30) / (85 - 30)) * (w - 40) + 20;
+            };
+
+            // Grid markers
+            for (let v = 30; v <= 85; v += 10) {
+                const x = getX(v);
+                ctx.fillStyle = '#3f3f46';
+                ctx.fillRect(x, h / 2 - 8, 1, 16);
+            }
+
+            // Draw Baseline Marker
+            const baseX = getX(state.baselineVo2);
+            ctx.strokeStyle = '#a1a1aa';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(baseX, 6);
+            ctx.lineTo(baseX, h - 6);
+            ctx.stroke();
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '10px "JetBrains Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`BASE: ${state.baselineVo2.toFixed(1)}`, baseX, h - 8);
+
+            // Draw Target Marker
+            const targetX = getX(state.targetVo2);
+            ctx.strokeStyle = '#ff3b30';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(targetX, 2);
+            ctx.lineTo(targetX, h - 2);
+            ctx.stroke();
+
+            // Highlight target diamond
+            ctx.fillStyle = '#ff3b30';
+            ctx.beginPath();
+            ctx.arc(targetX, h / 2, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px "JetBrains Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`TARGET: ${state.targetVo2.toFixed(1)}`, targetX, 16);
+        }
+
+        /* ==========================================================================
+           05. UI CONTROLS & EVENT LISTENERS
+           ========================================================================== */
+
+        function setMode(mode) {
+            state.mode = mode;
+            const tabA = document.getElementById('modeTabA');
+            const tabB = document.getElementById('modeTabB');
+            const ctrlA = document.getElementById('controlsModeA');
+            const ctrlB = document.getElementById('controlsModeB');
+
+            if (mode === 'A') {
+                tabA.className = "py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all bg-[#ff3b30] text-white";
+                tabB.className = "py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all text-zinc-400 hover:text-white";
+                ctrlA.classList.remove('hidden');
+                ctrlB.classList.add('hidden');
+            } else {
+                tabB.className = "py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all bg-[#ff3b30] text-white";
+                tabA.className = "py-2.5 px-4 font-mono text-xs font-bold uppercase transition-all text-zinc-400 hover:text-white";
+                ctrlB.classList.remove('hidden');
+                ctrlA.classList.add('hidden');
+            }
+            calculateResults();
+        }
+
+        function setAnalysisTab(tab) {
+            const btnSplits = document.getElementById('btnTabSplits');
+            const btnZones = document.getElementById('btnTabZones');
+            const tabSplits = document.getElementById('tabSplits');
+            const tabZones = document.getElementById('tabZones');
+
+            if (tab === 'splits') {
+                btnSplits.className = "pb-2 border-b-2 border-[#ff3b30] text-white font-bold uppercase";
+                btnZones.className = "pb-2 border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 uppercase";
+                tabSplits.classList.remove('hidden');
+                tabZones.classList.add('hidden');
+            } else {
+                btnZones.className = "pb-2 border-b-2 border-[#ff3b30] text-white font-bold uppercase";
+                btnSplits.className = "pb-2 border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 uppercase";
+                tabZones.classList.remove('hidden');
+                tabSplits.classList.add('hidden');
+            }
+        }
+
+        function loadPreset(vo2, timeStr) {
+            const parts = timeStr.split(':');
+            state.baselineVo2 = vo2;
+            state.baselineTimeSec = parseTimeToSec(parts[0], parts[1]);
+
+            document.getElementById('baseVo2').value = vo2;
+            document.getElementById('baseMin').value = parts[0];
+            document.getElementById('baseSec').value = parts[1];
+
+            updateEconomyRatio();
+            calculateResults();
+        }
+
+
+        /* ==========================================================================
+           06. SCENARIO PERSISTENCE & EXPORT
+           ========================================================================== */
+
+        function saveScenario() {
+            const scenario = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                mode: state.mode,
+                baseVo2: state.baselineVo2,
+                baseTime: formatTime(state.baselineTimeSec),
+                targetVo2: state.targetVo2.toFixed(1),
+                targetTime: formatTime(state.targetTimeSec)
+            };
+
+            state.scenarios.unshift(scenario);
+            if (state.scenarios.length > 8) state.scenarios.pop();
+
+            localStorage.setItem('aero_lab_scenarios', JSON.stringify(state.scenarios));
+            renderSavedScenarios();
+        }
+
+        function renderSavedScenarios() {
+            const container = document.getElementById('savedList');
+            if (!container) return;
+
+            if (state.scenarios.length === 0) {
+                container.innerHTML = `
+                    <div class="text-xs font-mono text-zinc-600 italic py-2 text-center border border-dashed border-zinc-800">
+                        No saved scenarios. Click "Save Scenario" above.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            state.scenarios.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = "p-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 font-mono text-xs flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <div class="text-zinc-200 font-bold">${item.targetVo2} VO2 <span class="text-[#ff3b30]">→</span> ${item.targetTime}</div>
+                        <div class="text-[10px] text-zinc-500">Base: ${item.baseVo2} @ ${item.baseTime} | ${item.timestamp}</div>
+                    </div>
+                    <button onclick="deleteScenario(${item.id})" class="text-zinc-600 hover:text-red-400 font-bold px-1">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function deleteScenario(id) {
+            state.scenarios = state.scenarios.filter(s => s.id !== id);
+            localStorage.setItem('aero_lab_scenarios', JSON.stringify(state.scenarios));
+            renderSavedScenarios();
+        }
+
+        function copySummaryToClipboard() {
+            const text = `AERO_LAB SUMMARY:
+Target VO2max: ${state.targetVo2.toFixed(1)} mL/kg/min
+Predicted 5K Time: ${formatTime(state.targetTimeSec)}
+Pace: ${formatTime(state.targetTimeSec / 5)} /km
+Baseline: ${state.baselineVo2} VO2max @ ${formatTime(state.baselineTimeSec)}`;
+
+            // Standard fallback execCommand copy
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            const copyBtn = document.getElementById('copySummaryBtn');
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'COPIED!';
+            copyBtn.classList.add('bg-emerald-600', 'text-white');
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.classList.remove('bg-emerald-600', 'text-white');
+            }, 1500);
+        }
+
+        function exportJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `aero_lab_export_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        /* ==========================================================================
+           07. INIT & EVENT BINDINGS
+           ========================================================================== */
+
+        window.onload = function() {
+            // Load from localStorage if present
+            const stored = localStorage.getItem('aero_lab_scenarios');
+            if (stored) {
+                try {
+                    state.scenarios = JSON.parse(stored);
+                    renderSavedScenarios();
+                } catch(e) {}
+            }
+
+            // Calibrate Anchor Event
+            document.getElementById('calibrateBtn').addEventListener('click', () => {
+                const vo2 = parseFloat(document.getElementById('baseVo2').value) || 52.0;
+                const min = parseInt(document.getElementById('baseMin').value) || 19;
+                const sec = parseInt(document.getElementById('baseSec').value) || 30;
+
+                state.baselineVo2 = vo2;
+                state.baselineTimeSec = parseTimeToSec(min, sec);
+                updateEconomyRatio();
+                calculateResults();
+            });
+
+            // Target VO2 Slider listener
+            document.getElementById('targetVo2Slider').addEventListener('input', (e) => {
+                state.targetVo2 = parseFloat(e.target.value);
+                calculateResults();
+            });
+
+            // Target Time Slider listener
+            document.getElementById('targetTimeSlider').addEventListener('input', (e) => {
+                state.targetTimeSec = parseInt(e.target.value);
+                calculateResults();
+            });
+
+            // Target Time Input listeners
+            const minIn = document.getElementById('targetMinInput');
+            const secIn = document.getElementById('targetSecInput');
+            const syncTimeInputs = () => {
+                state.targetTimeSec = parseTimeToSec(minIn.value, secIn.value);
+                calculateResults();
+            };
+            minIn.addEventListener('change', syncTimeInputs);
+            secIn.addEventListener('change', syncTimeInputs);
+
+            // Save & Copy Buttons
+            document.getElementById('saveScenarioBtn').addEventListener('click', saveScenario);
+            document.getElementById('copySummaryBtn').addEventListener('click', copySummaryToClipboard);
+            document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+
+            // Reset Button
+            document.getElementById('resetAppBtn').addEventListener('click', () => {
+                loadPreset(52, '19:30');
+                state.scenarios = [];
+                localStorage.removeItem('aero_lab_scenarios');
+                renderSavedScenarios();
+            });
+
+            // Keyboard Shortcuts
+            window.addEventListener('keydown', (e) => {
+                // Ignore if typing in an input
+                if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+                if (e.key.toLowerCase() === 'm') {
+                    setMode(state.mode === 'A' ? 'B' : 'A');
+                } else if (e.key.toLowerCase() === 'c') {
+                    document.getElementById('calibrateBtn').click();
+                } else if (e.key.toLowerCase() === 's') {
+                    saveScenario();
+                }
+            });
+
+            // Window Resize for Canvas
+            window.addEventListener('resize', renderSpectrumCanvas);
+
+            // Initial Execution
+            updateEconomyRatio();
+            calculateResults();
+        };
+    </script>
+</body>
+</html>
